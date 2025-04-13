@@ -2,16 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Grouped Outputs Viewer</title>
+  <title>Visual Output Viewer</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .group { border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; }
-    img { max-width: 200px; display: block; margin-bottom: 5px; }
-    pre { background: #f0f0f0; padding: 10px; overflow-x: auto; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .group {
+      margin-bottom: 40px;
+    }
+    .images {
+      display: flex;
+      gap: 40px;
+      align-items: center;
+    }
+    .hover-wrap {
+      position: relative;
+      width: 256px;
+      height: 256px;
+    }
+    .hover-wrap img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: opacity 0.3s ease-in-out;
+    }
+    .hover-wrap img.mask {
+      opacity: 0;
+    }
+    .hover-wrap:hover img.mask {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
-  <h1>Grouped Outputs Viewer</h1>
+  <h1>Grouped Image Viewer</h1>
   <div id="container"></div>
 
   <script>
@@ -25,31 +53,40 @@
           div.className = 'group';
           div.innerHTML = `<h2>Group: ${group}</h2>`;
 
-          // Training images
-          files.training.forEach(filename => {
-            const img = document.createElement('img');
-            img.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${filename}`;
-            div.appendChild(img);
-          });
+          const row = document.createElement('div');
+          row.className = 'images';
 
-          // Initmask I and M images
-          files.initmask.forEach(filename => {
-            const img = document.createElement('img');
-            img.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${filename}`;
-            div.appendChild(img);
-          });
+          // Left: hover I -> M
+          const hoverWrap = document.createElement('div');
+          hoverWrap.className = 'hover-wrap';
 
-          // Text content
-          files.text.forEach(filename => {
-            fetch(`https://raw.githubusercontent.com/heinzo666/text/main/outputs/${filename}`)
-              .then(resp => resp.text())
-              .then(txt => {
-                const pre = document.createElement('pre');
-                pre.textContent = txt;
-                div.appendChild(pre);
-              });
-          });
+          const iImg = files.initmask.find(f => f.endsWith('I.png'));
+          const mImg = files.initmask.find(f => f.endsWith('M.png'));
 
+          if (iImg && mImg) {
+            const iTag = document.createElement('img');
+            iTag.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${iImg}`;
+            const mTag = document.createElement('img');
+            mTag.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${mImg}`;
+            mTag.classList.add('mask');
+
+            hoverWrap.appendChild(iTag);
+            hoverWrap.appendChild(mTag);
+            row.appendChild(hoverWrap);
+          }
+
+          // Right: training image
+          const hImg = files.training.find(f => f.startsWith('H'));
+          if (hImg) {
+            const hTag = document.createElement('img');
+            hTag.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hImg}`;
+            hTag.style.width = '256px';
+            hTag.style.height = '256px';
+            hTag.style.objectFit = 'contain';
+            row.appendChild(hTag);
+          }
+
+          div.appendChild(row);
           container.appendChild(div);
         }
       });
