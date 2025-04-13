@@ -112,18 +112,17 @@
 
             const trainingRow = document.createElement('div');
             trainingRow.className = 'training-strip';
-
-            const basePrefix = iFile.slice(0, 13); // e.g., 250412_123350 → H250412_123350
-            const matchingTraining = group.training.filter(h => h.startsWith('H' + basePrefix));
-
-            matchingTraining.forEach(hFile => {
+          
+            group.training.forEach(hFile => {
               const imgH = document.createElement('img');
               imgH.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hFile}`;
               trainingRow.appendChild(imgH);
             });
-
+          
             row.appendChild(trainingRow);
             groupDiv.appendChild(row);
+
+          
           });
 
           container.appendChild(groupDiv);
