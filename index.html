@@ -59,71 +59,122 @@
       border: 1px solid #aaa;
       background: #fff;
     }
+    .pagination {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .pagination button {
+      margin: 0 5px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .pagination button.active {
+      background-color: #333;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
   <h1>Grouped Viewer</h1>
   <div id="container"></div>
+  <div class="pagination" id="pagination"></div>
 
   <script>
+    const GROUPS_PER_PAGE = 5;
+    let allData = {};
+    let groupKeys = [];
+    let currentPage = 1;
+
+    function renderPage(page) {
+      const container = document.getElementById('container');
+      container.innerHTML = '';
+
+      const start = (page - 1) * GROUPS_PER_PAGE;
+      const end = start + GROUPS_PER_PAGE;
+      const pageKeys = groupKeys.slice(start, end);
+
+      for (const groupKey of pageKeys) {
+        const group = allData[groupKey];
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'group';
+
+        const title = document.createElement('div');
+        title.className = 'group-title';
+        title.textContent = `Group: ${groupKey}`;
+        groupDiv.appendChild(title);
+
+        const initmaskPairs = [];
+
+        group.initmask.forEach((file) => {
+          if (file.endsWith('I.png')) {
+            const base = file.slice(0, -5);
+            const match = group.initmask.find(f => f === `${base}M.png`);
+            if (match) {
+              initmaskPairs.push([file, match]);
+            }
+          }
+        });
+
+        const initmaskRow = document.createElement('div');
+        initmaskRow.className = 'image-row';
+
+        initmaskPairs.forEach(([iFile, mFile]) => {
+          const hoverDiv = document.createElement('div');
+          hoverDiv.className = 'initmask-pair';
+
+          const imgI = document.createElement('img');
+          imgI.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${iFile}`;
+          const imgM = document.createElement('img');
+          imgM.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${mFile}`;
+          imgM.classList.add('mask');
+
+          hoverDiv.appendChild(imgI);
+          hoverDiv.appendChild(imgM);
+          initmaskRow.appendChild(hoverDiv);
+        });
+
+        groupDiv.appendChild(initmaskRow);
+
+        const trainingRow = document.createElement('div');
+        trainingRow.className = 'training-strip';
+
+        group.training.forEach(hFile => {
+          const imgH = document.createElement('img');
+          imgH.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hFile}`;
+          trainingRow.appendChild(imgH);
+        });
+
+        groupDiv.appendChild(trainingRow);
+        container.appendChild(groupDiv);
+      }
+    }
+
+    function renderPagination() {
+      const totalPages = Math.ceil(groupKeys.length / GROUPS_PER_PAGE);
+      const pagination = document.getElementById('pagination');
+      pagination.innerHTML = '';
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          currentPage = i;
+          renderPage(currentPage);
+          renderPagination();
+        });
+        pagination.appendChild(btn);
+      }
+    }
+
     fetch('filelist.json')
       .then(response => response.json())
       .then(data => {
-        const container = document.getElementById('container');
-
-        for (const [groupKey, group] of Object.entries(data)) {
-          const groupDiv = document.createElement('div');
-          groupDiv.className = 'group';
-
-          const title = document.createElement('div');
-          title.className = 'group-title';
-          title.textContent = `Group: ${groupKey}`;
-          groupDiv.appendChild(title);
-
-          const initmaskPairs = [];
-
-          group.initmask.forEach((file) => {
-            if (file.endsWith('I.png')) {
-              const base = file.slice(0, -5); // remove 'I.png'
-              const match = group.initmask.find(f => f === `${base}M.png`);
-              if (match) {
-                initmaskPairs.push([file, match]);
-              }
-            }
-          });
-
-          const initmaskRow = document.createElement('div');
-          initmaskRow.className = 'image-row';
-
-          initmaskPairs.forEach(([iFile, mFile]) => {
-            const hoverDiv = document.createElement('div');
-            hoverDiv.className = 'initmask-pair';
-
-            const imgI = document.createElement('img');
-            imgI.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${iFile}`;
-            const imgM = document.createElement('img');
-            imgM.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${mFile}`;
-            imgM.classList.add('mask');
-
-            hoverDiv.appendChild(imgI);
-            hoverDiv.appendChild(imgM);
-            initmaskRow.appendChild(hoverDiv);
-          });
-
-          groupDiv.appendChild(initmaskRow);
-
-          const trainingRow = document.createElement('div');
-          trainingRow.className = 'training-strip';
-
-          group.training.forEach(hFile => {
-            const imgH = document.createElement('img');
-            imgH.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hFile}`;
-            trainingRow.appendChild(imgH);
-          });
-
-          groupDiv.appendChild(trainingRow);
-          container.appendChild(groupDiv);
-        }
+        allData = data;
+        groupKeys = Object.keys(data);
+        renderPage(currentPage);
+        renderPagination();
       });
   </script>
 </body>
