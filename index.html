@@ -9,12 +9,19 @@
       padding: 20px;
     }
     .group {
-      margin-bottom: 40px;
+      margin-bottom: 80px;
     }
     .images {
       display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      align-items: flex-start;
+    }
+    .pair {
+      display: flex;
       gap: 40px;
       align-items: center;
+      margin-bottom: 40px;
     }
     .hover-wrap {
       position: relative;
@@ -53,40 +60,53 @@
           div.className = 'group';
           div.innerHTML = `<h2>Group: ${group}</h2>`;
 
-          const row = document.createElement('div');
-          row.className = 'images';
+          const imagePairs = [];
 
-          // Left: hover I -> M
-          const hoverWrap = document.createElement('div');
-          hoverWrap.className = 'hover-wrap';
+          files.initmask.forEach((filename) => {
+            if (filename.endsWith('I.png')) {
+              const prefix = filename.replace('I.png', '');
+              const mMatch = files.initmask.find(f => f.startsWith(prefix) && f.endsWith('M.png'));
+              if (mMatch) {
+                imagePairs.push({ I: filename, M: mMatch });
+              }
+            }
+          });
 
-          const iImg = files.initmask.find(f => f.endsWith('I.png'));
-          const mImg = files.initmask.find(f => f.endsWith('M.png'));
+          const hImages = files.training.filter(f => f.startsWith('H'));
 
-          if (iImg && mImg) {
-            const iTag = document.createElement('img');
-            iTag.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${iImg}`;
-            const mTag = document.createElement('img');
-            mTag.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${mImg}`;
-            mTag.classList.add('mask');
+          for (let i = 0; i < Math.max(imagePairs.length, hImages.length); i++) {
+            const pairDiv = document.createElement('div');
+            pairDiv.className = 'pair';
 
-            hoverWrap.appendChild(iTag);
-            hoverWrap.appendChild(mTag);
-            row.appendChild(hoverWrap);
+            // Left (hover I -> M)
+            if (imagePairs[i]) {
+              const hoverWrap = document.createElement('div');
+              hoverWrap.className = 'hover-wrap';
+
+              const iImg = document.createElement('img');
+              iImg.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${imagePairs[i].I}`;
+              const mImg = document.createElement('img');
+              mImg.src = `https://raw.githubusercontent.com/heinzo666/initmask/main/outputs/${imagePairs[i].M}`;
+              mImg.classList.add('mask');
+
+              hoverWrap.appendChild(iImg);
+              hoverWrap.appendChild(mImg);
+              pairDiv.appendChild(hoverWrap);
+            }
+
+            // Right (H image)
+            if (hImages[i]) {
+              const hTag = document.createElement('img');
+              hTag.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hImages[i]}`;
+              hTag.style.width = '256px';
+              hTag.style.height = '256px';
+              hTag.style.objectFit = 'contain';
+              pairDiv.appendChild(hTag);
+            }
+
+            div.appendChild(pairDiv);
           }
 
-          // Right: training image
-          const hImg = files.training.find(f => f.startsWith('H'));
-          if (hImg) {
-            const hTag = document.createElement('img');
-            hTag.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hImg}`;
-            hTag.style.width = '256px';
-            hTag.style.height = '256px';
-            hTag.style.objectFit = 'contain';
-            row.appendChild(hTag);
-          }
-
-          div.appendChild(row);
           container.appendChild(div);
         }
       });
