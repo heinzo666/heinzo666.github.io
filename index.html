@@ -92,10 +92,10 @@
             }
           });
 
-          initmaskPairs.forEach(([iFile, mFile]) => {
-            const row = document.createElement('div');
-            row.className = 'image-row';
+          const initmaskRow = document.createElement('div');
+          initmaskRow.className = 'image-row';
 
+          initmaskPairs.forEach(([iFile, mFile]) => {
             const hoverDiv = document.createElement('div');
             hoverDiv.className = 'initmask-pair';
 
@@ -107,24 +107,21 @@
 
             hoverDiv.appendChild(imgI);
             hoverDiv.appendChild(imgM);
-
-            row.appendChild(hoverDiv);
-
-            const trainingRow = document.createElement('div');
-            trainingRow.className = 'training-strip';
-          
-            group.training.forEach(hFile => {
-              const imgH = document.createElement('img');
-              imgH.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hFile}`;
-              trainingRow.appendChild(imgH);
-            });
-          
-            row.appendChild(trainingRow);
-            groupDiv.appendChild(row);
-
-          
+            initmaskRow.appendChild(hoverDiv);
           });
 
+          groupDiv.appendChild(initmaskRow);
+
+          const trainingRow = document.createElement('div');
+          trainingRow.className = 'training-strip';
+
+          group.training.forEach(hFile => {
+            const imgH = document.createElement('img');
+            imgH.src = `https://raw.githubusercontent.com/heinzo666/training/main/outputs/${hFile}`;
+            trainingRow.appendChild(imgH);
+          });
+
+          groupDiv.appendChild(trainingRow);
           container.appendChild(groupDiv);
         }
       });
